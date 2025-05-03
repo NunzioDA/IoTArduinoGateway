@@ -4,31 +4,19 @@ import time
 import threading
 
 
-# This is the abstract file 
-# describing a generic arduino 
-# listener
+# Abstract base class that defines the interface 
+# for an Arduino message listener.
 class ArduinoListener(ABC):
-    # This method is called when a message is
-    # received and the listeneri is waiting for it
+    # Called when a message is received from the Arduino.
+    # This method should be overridden by concrete 
+    # listener implementations.
     def on_message(self, msg : list[str]):
         pass
 
-# This class is used to wait
-# for the arduino to be ready
-class ArduinoReadyListener(ArduinoListener):
-    def __init__(self, unique_id):
-        self.unique_id = unique_id
-        self.response_received = False
-        self.response = None
 
-    def on_message(self, msg):
-        if self.unique_id in msg:
-            self.response_received = True
-            self.response = msg
-
-# This static class is used to connect and communicate with
-# Arduino. It waits for Arduino to be ready to communicate
-# and starts a thread to receive messages from arduino.
+# It establishes the serial connection, waits for readiness 
+# confirmation, sends messages with unique identifiers, and 
+# listens for responses in a separate thread.
 class Arduino:
 
     connection = None
