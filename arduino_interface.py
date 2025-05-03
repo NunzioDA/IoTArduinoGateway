@@ -3,10 +3,18 @@ import serial
 import time
 import threading
 
+
+# This is the abstract file 
+# describing a generic arduino 
+# listener
 class ArduinoListener(ABC):
+    # This method is called when a message is
+    # received and the listeneri is waiting for it
     def on_message(self, msg : list[str]):
         pass
 
+# This class is used to wait
+# for the arduino to be ready
 class ArduinoReadyListener(ArduinoListener):
     def __init__(self, unique_id):
         self.unique_id = unique_id
@@ -18,6 +26,9 @@ class ArduinoReadyListener(ArduinoListener):
             self.response_received = True
             self.response = msg
 
+# This static class is used to connect and communicate with
+# Arduino. It waits for Arduino to be ready to communicate
+# and starts a thread to receive messages from arduino.
 class Arduino:
 
     connection = None
@@ -25,19 +36,24 @@ class Arduino:
     arduino_listener_alive = False
     ready = False
 
+    # Adds a message listener for a given unique ID
+    # If the ID already exists, appends the listener to the list
     def addMessageListener(unique_id : str, listener : ArduinoListener):
         if unique_id in Arduino.listeners:
             Arduino.listeners[unique_id].append(listener)
         else:
             Arduino.listeners[unique_id] = [listener]
     
+    # Removes a specific listener associated with a unique ID
+    # If no listeners remain for that ID, the entry is deleted
     def removeListener(listener : ArduinoListener, unique_id : str):
         if unique_id in Arduino.listeners and listener in Arduino.listeners[unique_id]:
             Arduino.listeners[unique_id].remove(listener)
             if not Arduino.listeners[unique_id]:
                 del Arduino.listeners[unique_id]
 
-    
+    # Notifies all listeners registered to a specific unique ID
+    # Then removes the listeners after notifying them
     def notifyListeners(data, unique_id):
 
         if unique_id in Arduino.listeners:
@@ -45,9 +61,9 @@ class Arduino:
                 listener.on_message(data)
 
             del Arduino.listeners[unique_id]
-                
-        
 
+    # Connects to the Arduino on the given COM port and waits until it is ready
+    # Starts the listener thread once ready
     def connect(com):
         Arduino.connection = serial.Serial(port=com, baudrate=9600, timeout=1)
         time.sleep(2)  # Wait for the connection to establish
@@ -65,6 +81,9 @@ class Arduino:
         if Arduino.ready:
             Arduino.start_listener_thread()
 
+    # Sends a message to the Arduino with a unique ID
+    # If a message handler is provided, it registers 
+    # the handler to be called on response
     def send(dato, message_handler: ArduinoListener=None):
         if not Arduino.connection:
             raise Exception("Arduino not connected")      
@@ -79,7 +98,8 @@ class Arduino:
 
         return unique_id        
 
-
+    # Reads a line from the Arduino connection
+    # Returns the decoded string or None if empty
     def read():
         try:
             data = Arduino.connection.readline().decode().strip()
@@ -90,11 +110,16 @@ class Arduino:
         except Exception as e:
             print(f"Error reading from Arduino: {e}")
 
+    # Starts a separate thread to listen for incoming 
+    # messages from Arduino
     def start_listener_thread():
         Arduino.arduino_listener_alive = True
         listener_thread = threading.Thread(target=Arduino.arduino_message_listener)
         listener_thread.start()
 
+
+    # Continuously listens for messages from Arduino in a separate thread
+    # When a message is received, notifies the corresponding listeners
     def arduino_message_listener():
         while Arduino.arduino_listener_alive:
             response = Arduino.read()
