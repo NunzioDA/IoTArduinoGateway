@@ -53,21 +53,26 @@ class Arduino:
     # Connects to the Arduino on the given COM port and waits until it is ready
     # Starts the listener thread once ready
     def connect(com):
-        Arduino.connection = serial.Serial(port=com, baudrate=9600, timeout=1)
-        time.sleep(2)  # Wait for the connection to establish
-        Arduino.send("ready;")
+        try:
+            Arduino.connection = serial.Serial(port=com, baudrate=9600, timeout=1)
+            time.sleep(2)  # Wait for the connection to establish
+            Arduino.send("ready;")
 
-        while not Arduino.ready:        
-            response = Arduino.read()
+            while not Arduino.ready:        
+                response = Arduino.read()
 
-            if response :
-                Arduino.ready = True
-                print("Arduino is ready")
-            else:
-                Arduino.send("ready;")    
+                if response :
+                    Arduino.ready = True
+                    print("Arduino is ready")
+                else:
+                    Arduino.send("ready;")    
 
-        if Arduino.ready:
-            Arduino.start_listener_thread()
+            if Arduino.ready:
+                Arduino.start_listener_thread()
+            return True
+        except:
+            return False
+            
 
     # Sends a message to the Arduino with a unique ID
     # If a message handler is provided, it registers 
