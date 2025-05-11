@@ -17,6 +17,7 @@ class WebServer:
     def init():
         load_dotenv()
         WebServer.base_url = os.getenv("BACKEND")
+        WebServer.base_url = WebServer.base_url.encode('utf-8').decode('unicode_escape')
         WebServer.password = os.getenv("PASSWORD")
   
         WebServer.command_queue_file = WebServer.base_url + WebServer.command_queue_file
