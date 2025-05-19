@@ -23,6 +23,8 @@ class Arduino:
     listeners = {}
     arduino_listener_alive = False
     ready = False
+    # Lock for a thread-safe writing operation
+    serial_lock = threading.Lock()
 
     # Adds a message listener for a given unique ID
     # If the ID already exists, appends the listener to the list
@@ -78,18 +80,19 @@ class Arduino:
     # If a message handler is provided, it registers 
     # the handler to be called on response
     def send(dato, message_handler: ArduinoListener=None):
-        if not Arduino.connection:
-            raise Exception("Arduino not connected")      
+        with Arduino.serial_lock:
+            if not Arduino.connection:
+                raise Exception("Arduino not connected")      
 
-        
-        unique_id = str(int(time.time() * 1000))  # Unique ID based on current time in milliseconds
-        print(f"Sending: {unique_id};{dato};")
-        Arduino.connection.write(f"{unique_id};{dato};\n".encode())
+            
+            unique_id = str(int(time.time() * 1000))  # Unique ID based on current time in milliseconds
+            print(f"Sending: {unique_id};{dato};")
+            Arduino.connection.write(f"{unique_id};{dato};\n".encode())
 
-        if message_handler:
-            Arduino.addMessageListener(unique_id, message_handler)
+            if message_handler:
+                Arduino.addMessageListener(unique_id, message_handler)
 
-        return unique_id        
+            return unique_id        
 
     # Reads a line from the Arduino connection
     # Returns the decoded string or None if empty
