@@ -1,5 +1,5 @@
 from arduino_interface import ArduinoListener
-from tools import WebServer
+from tools import SmartParkAPI
 
 # This class describes the listener that
 # manages the info request response
@@ -15,7 +15,7 @@ class InfoManager(ArduinoListener):
     def on_info(self, info):
         # sending info to the server
         print(f"Info received: {info}")
-        r = WebServer.update_status(info)
+        SmartParkAPI.publish_status(info)
 
 # This is the listener that manages the
 # arduino response to a general command

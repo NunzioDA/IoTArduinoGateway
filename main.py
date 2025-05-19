@@ -1,17 +1,23 @@
-import json
 import time
 from arduino_interface import Arduino
 from listeners import CommandResponse, InfoManager
-from tools import WebServer
+from tools import SmartParkAPI
 
 
-# Initializing the webserver
-WebServer.init()
+# print message, useful for checking if it was successful
+def on_command(command):
+    print("Command received", command)
+    Arduino.send(command, CommandResponse())
+
+# Initializing the mqtt communication
+SmartParkAPI.init(on_command=on_command)
+SmartParkAPI.connect_mqtt()
 
 # Connecting to arduino
 connected = Arduino.connect("COM5")
 
-if connected:
+if connected:    
+
     last_command_timestamp = None
     info_manager = InfoManager()
 
@@ -20,27 +26,12 @@ if connected:
     # sending them to arduino.
     # It also update the enviroment status by making an info
     # request to arduino and loading the result on the webserver.
-    while True:
-        # Getting the command queue
-        command_queue = WebServer.get_command_queue(
-            timestamp=last_command_timestamp
-        )
-        print(command_queue.text)
-        command_queue_json = json.loads(command_queue.text)
-
-        # Checking for new commands in the queue
-        for command in command_queue_json:
-            # Check if the command is given later than the last command
-            if last_command_timestamp is None or command["timestamp"] > last_command_timestamp:
-                last_command_timestamp = command["timestamp"]
-                command = command["command"]
-                Arduino.send(command, CommandResponse())
+    while True:              
         
         # Updating the enviroment status
         if not info_manager.waiting_info:
             Arduino.send("info", info_manager)
             info_manager.waiting_info = True
-
 
         time.sleep(2) 
 else:
