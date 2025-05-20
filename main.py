@@ -23,10 +23,9 @@ if connected:
     info_manager = InfoManager()
 
     # Main thread loop
-    # This loop will check for new commands in the queue
-    # sending them to arduino.
-    # It also update the enviroment status by making an info
-    # request to arduino and loading the result on the webserver.
+    # This loop send arduino a request to check the enviroment state 
+    # by making an info request. If the state is changed it is sent
+    # to the MQTT broker.
     while True:              
         
         # Updating the enviroment status
