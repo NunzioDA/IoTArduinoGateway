@@ -23,8 +23,8 @@ if connected:
     info_manager = InfoManager()
 
     # Main thread loop
-    # This loop send arduino a request to check the enviroment state 
-    # by making an info request. If the state is changed it is sent
+    # This loop sends a request to the Arduino to check the environment state
+    # by making an info request. If the state has changed, it is sent
     # to the MQTT broker.
     while True:              
         
