@@ -15,6 +15,7 @@ SmartParkAPI.connect_mqtt()
 
 # Connecting to arduino
 connected = Arduino.connect("COM5")
+wait_count = 0
 
 if connected:    
 
@@ -29,9 +30,12 @@ if connected:
     while True:              
         
         # Updating the enviroment status
-        if not info_manager.waiting_info:
+        if not info_manager.waiting_info or wait_count > 3:
             Arduino.send("info", info_manager)
             info_manager.waiting_info = True
+            wait_count = 0
+        else:
+            wait_count += 1
 
         time.sleep(2) 
 else:
