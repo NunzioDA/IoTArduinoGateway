@@ -7,6 +7,7 @@ class InfoManager(ArduinoListener):
     def __init__(self):
         self.info = None
         self.waiting_info = False
+        self.lastState = None
 
     def on_message(self, message):
         self.on_info(message[1])
@@ -14,8 +15,14 @@ class InfoManager(ArduinoListener):
 
     def on_info(self, info):
         # sending info to the server
-        print(f"Info received: {info}")
-        SmartParkAPI.publish_status(info)
+
+        if self.lastState == None or self.lastState != info:
+            print(f"New state received: {info}")
+            SmartParkAPI.publish_status(info)
+            self.lastState = info
+        else:
+            print("State didn't change")
+
 
 # This is the listener that manages the
 # arduino response to a general command
